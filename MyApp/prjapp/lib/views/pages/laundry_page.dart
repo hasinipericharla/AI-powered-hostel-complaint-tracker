@@ -266,7 +266,93 @@ class _LaundryPageState extends State<LaundryPage> {
       },
     );
   }
+/// ================= FILTER LOGIC (shared by UI + download) =================
+  List<Complaint> currentFilteredList() {
+    var filtered = complaints
+        .where((c) => c.status.toLowerCase() != 'resolved')
+        .toList();
 
+    if (selectedBlock != 'All') {
+      filtered = filtered.where((c) => c.block == selectedBlock).toList();
+    }
+
+    if (si == 0) {
+      filtered = filtered.where((c) => !c.reported).toList();
+    } else if (si == 1) {
+      filtered = filtered.where((c) => c.reported).toList();
+    }
+
+    return filtered;
+  }
+
+  /// ================= PDF DOWNLOAD =================
+  Future<void> downloadComplaintsPdf() async {
+    final list = currentFilteredList();
+
+    if (list.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No complaints to download')),
+      );
+      return;
+    }
+
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        build: (context) => [
+          pw.Center(
+            child: pw.Text(
+              'Cleaning Complaints',
+              style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+            ),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Table.fromTextArray(
+            headers: ['Reg No', 'Block', 'Room No', 'Description', 'Filed Date', 'Resolved Date', 'Signature'],
+            data: list
+                .map((c) => [
+                      c.regNo,
+                      c.block,
+                      c.place,
+                      c.description,
+                      formatDate(c.createdAt),
+                      '',
+                      '',
+                    ])
+                .toList(),
+            border: pw.TableBorder.all(color: PdfColors.black, width: 1),
+            headerStyle: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+              fontSize: 10,
+              color: PdfColors.white,
+            ),
+            cellStyle: const pw.TextStyle(fontSize: 9, color: PdfColors.black),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.grey800),
+            cellAlignment: pw.Alignment.centerLeft,
+            cellPadding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            columnWidths: {
+              0: const pw.FlexColumnWidth(1.5),
+              1: const pw.FlexColumnWidth(1),
+              2: const pw.FlexColumnWidth(1.2),
+              3: const pw.FlexColumnWidth(3),
+              4: const pw.FlexColumnWidth(1.5),
+              5: const pw.FlexColumnWidth(1.5),
+              6: const pw.FlexColumnWidth(1.5),
+            },
+          ),
+        ],
+      ),
+    );
+
+    final dir = await getTemporaryDirectory();
+    final file = File(
+      '${dir.path}/cleaning_complaints_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    );
+    await file.writeAsBytes(await pdf.save());
+    await OpenFilex.open(file.path);
+  }
   /// ================= TAB LOGIC =================
   Widget getPage() {
     var filtered = complaints
@@ -351,7 +437,7 @@ class _LaundryPageState extends State<LaundryPage> {
                     IconButton(
                       icon:
                           const Icon(Icons.download, color: Colors.white),
-                      onPressed: () {},
+                      onPressed: downloadComplaintsPdf,
                     ),
                     IconButton(
                       icon:

@@ -152,87 +152,8 @@ class _PlumbingPageState extends State<PlumbingPage> {
     );
   }
 
-  /// ================= PDF DOWNLOAD =================
 
-Future<void> downloadComplaints() async {
-  debugPrint('DOWNLOAD FUNCTION STARTED');
 
-  List<Complaint> filtered = complaints
-      .where((c) => c.status.toLowerCase() != 'resolved')
-      .toList();
-
-  if (selectedBlock != 'All') {
-    filtered = filtered.where((c) => c.block == selectedBlock).toList();
-  }
-
-  if (si == 0) {
-    filtered = filtered.where((c) => !c.reported).toList();
-  } else if (si == 1) {
-    filtered = filtered.where((c) => c.reported).toList();
-  } else {
-    return;
-  }
-
-  final pdf = pw.Document();
-
-  pdf.addPage(
-    pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      build: (context) => [
-        pw.Text(
-          'Plumbing Complaints',
-          style: pw.TextStyle(
-            fontSize: 22,
-            fontWeight: pw.FontWeight.bold,
-          ),
-        ),
-        pw.SizedBox(height: 12),
-        ...filtered.map(
-          (c) => pw.Container(
-            margin: const pw.EdgeInsets.only(bottom: 10),
-            padding: const pw.EdgeInsets.all(10),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.grey),
-              borderRadius: pw.BorderRadius.circular(6),
-            ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('Student Email: ${c.email ?? '-'}'),
-                pw.Text('Reg No: ${c.regNo}'),
-                pw.Text('Block: ${c.block}'),
-                pw.Text('Place: ${c.place}'),
-                pw.Text('Status: ${c.status}'),
-                pw.Text('Reported: ${c.reported ? "Yes" : "No"}'),
-                pw.Text('Filed Date: ${formatDate(c.createdAt)}'),
-                pw.SizedBox(height: 4),
-                pw.Text('Description: ${c.description}'),
-              ],
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-
-  // ✅ CORRECT DIRECTORY
-  final dir = await getApplicationDocumentsDirectory();
-  debugPrint('PDF DIR => ${dir.path}');
-
-  final file = File(
-    '${dir.path}/plumbing_complaints_${DateTime.now().millisecondsSinceEpoch}.pdf',
-  );
-
-  await file.writeAsBytes(await pdf.save());
-  debugPrint('PDF SAVED AT => ${file.path}');
-
-  // OPTIONAL: open (emulator may fail silently)
-  await OpenFilex.open(file.path);
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('PDF saved successfully')),
-  );
-}
 
   /// ================= FILTER =================
   Widget blockFilter() {
@@ -358,7 +279,93 @@ Future<void> downloadComplaints() async {
       },
     );
   }
+/// ================= FILTER LOGIC (shared by UI + download) =================
+  List<Complaint> currentFilteredList() {
+    var filtered = complaints
+        .where((c) => c.status.toLowerCase() != 'resolved')
+        .toList();
 
+    if (selectedBlock != 'All') {
+      filtered = filtered.where((c) => c.block == selectedBlock).toList();
+    }
+
+    if (si == 0) {
+      filtered = filtered.where((c) => !c.reported).toList();
+    } else if (si == 1) {
+      filtered = filtered.where((c) => c.reported).toList();
+    }
+
+    return filtered;
+  }
+
+  /// ================= PDF DOWNLOAD =================
+  Future<void> downloadComplaintsPdf() async {
+    final list = currentFilteredList();
+
+    if (list.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No complaints to download')),
+      );
+      return;
+    }
+
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        build: (context) => [
+          pw.Center(
+            child: pw.Text(
+              'Plumbing Complaints',
+              style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+            ),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Table.fromTextArray(
+            headers: ['Reg No', 'Block', 'Room No', 'Description', 'Filed Date', 'Resolved Date', 'Signature'],
+            data: list
+                .map((c) => [
+                      c.regNo,
+                      c.block,
+                      c.place,
+                      c.description,
+                      formatDate(c.createdAt),
+                      '',
+                      '',
+                    ])
+                .toList(),
+            border: pw.TableBorder.all(color: PdfColors.black, width: 1),
+            headerStyle: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+              fontSize: 10,
+              color: PdfColors.white,
+            ),
+            cellStyle: const pw.TextStyle(fontSize: 9, color: PdfColors.black),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.grey800),
+            cellAlignment: pw.Alignment.centerLeft,
+            cellPadding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            columnWidths: {
+              0: const pw.FlexColumnWidth(1.5),
+              1: const pw.FlexColumnWidth(1),
+              2: const pw.FlexColumnWidth(1.2),
+              3: const pw.FlexColumnWidth(3),
+              4: const pw.FlexColumnWidth(1.5),
+              5: const pw.FlexColumnWidth(1.5),
+              6: const pw.FlexColumnWidth(1.5),
+            },
+          ),
+        ],
+      ),
+    );
+
+    final dir = await getTemporaryDirectory();
+    final file = File(
+      '${dir.path}/plumbing_complaints_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    );
+    await file.writeAsBytes(await pdf.save());
+    await OpenFilex.open(file.path);
+  }
   /// ================= TAB LOGIC =================
   Widget getPage() {
     var filtered = complaints
@@ -443,7 +450,7 @@ Future<void> downloadComplaints() async {
                     IconButton(
                       icon: const Icon(Icons.download,
                           color: Colors.white),
-                      onPressed: downloadComplaints,
+                      onPressed: downloadComplaintsPdf,
                     ),
                     IconButton(
                       icon: const Icon(Icons.refresh,
