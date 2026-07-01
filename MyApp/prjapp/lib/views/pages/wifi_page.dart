@@ -1,12 +1,4 @@
-// import 'package:flutter/material.dart';
-// import 'service_page.dart';
 
-// class WifiPage extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return ServicePage(title: 'Wifi', color: Colors.orange);
-//   }
-// }
 
 import 'package:flutter/material.dart';
 
