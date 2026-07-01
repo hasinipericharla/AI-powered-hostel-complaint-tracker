@@ -520,6 +520,7 @@ import 'package:prjapp/views/pages/ac_page.dart';
 import 'package:prjapp/views/pages/block_warden_lh1.dart';
 import 'package:prjapp/views/pages/block_warden_lh2.dart';
 import 'package:prjapp/views/pages/block_warden_lh3.dart';
+import 'package:prjapp/views/pages/block_warden_lh4.dart';
 import 'package:prjapp/views/pages/block_warden_mh1.dart';
 import 'package:prjapp/views/pages/block_warden_mh2.dart';
 import 'package:prjapp/views/pages/block_warden_mh3.dart';
@@ -540,6 +541,7 @@ import 'package:prjapp/views/pages/laundry_page.dart';
 import 'package:prjapp/views/pages/lh1_cts.dart';
 import 'package:prjapp/views/pages/lh2_cts.dart';
 import 'package:prjapp/views/pages/lh3_cts.dart';
+import 'package:prjapp/views/pages/lh4_cts.dart';
 import 'package:prjapp/views/pages/lift_page.dart';
 import 'package:prjapp/views/pages/mess_page.dart';
 import 'package:prjapp/views/pages/mh1_cts.dart';
@@ -581,7 +583,7 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  final String baseUrl = "http://10.188.158.102:5000/api/auth";
+  final String baseUrl = "${ApiConfig.baseUrl}/api/auth";
   //final baseUrl="${ApiConfig.baseUrl}/login";
   bool _showPassword = false;
 
@@ -742,6 +744,12 @@ else if (role == "maint_laundry_incharge") {
           MaterialPageRoute(builder: (context) => const BlockWardenLH3Page()),
         );
         break;
+      case 'LH4':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const BlockWardenLH4Page()),
+        );
+        break;
       case 'MH1':
         Navigator.pushReplacement(
           context,
@@ -813,6 +821,12 @@ else if (role == "cts_it_manager") {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LH3CTSPage()),
+        );
+        break;
+      case 'LH4':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LH4CTSPage()),
         );
         break;
       case 'MH1':
@@ -897,7 +911,7 @@ else if (role == "cts_it_manager") {
                       onPressed: () => Navigator.pop(context),
                     ),
                     const Text(
-                      "Staff / Student Sign In",
+                      "Staff Sign In",
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 20,

@@ -1490,6 +1490,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:prjapp/config/api_config.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -1540,6 +1541,7 @@ class _HomePageState extends State<HomePage> {
     "LH1",
     "LH2",
     "LH3",
+    "LH4",
     "MH1",
     "MH2",
     "MH3",
@@ -1593,7 +1595,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     try {
-      final url = Uri.parse("http://10.188.158.102:5000/api/complaints");
+      final url = Uri.parse("${ApiConfig.baseUrl}/api/complaints");
       final response = await http.post(
         url,
         headers: {

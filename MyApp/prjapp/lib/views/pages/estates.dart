@@ -715,6 +715,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:prjapp/config/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'settings.dart';
@@ -786,7 +787,7 @@ class _EstatesPageState extends State<EstatesPage> {
 
   /// ✅ MH + LH BLOCKS
   final List<String> mhBlocks = ['MH1', 'MH2', 'MH3', 'MH4', 'MH5', 'MH6', 'MH7'];
-  final List<String> lhBlocks = ['LH1', 'LH2', 'LH3'];
+  final List<String> lhBlocks = ['LH1', 'LH2', 'LH3','LH4'];
   late final List<String> allowedBlocks = [...mhBlocks, ...lhBlocks];
 
   String selectedBlock = 'All';
@@ -823,7 +824,7 @@ class _EstatesPageState extends State<EstatesPage> {
     if (token == null) return;
 
     final res = await http.get(
-      Uri.parse('http://10.188.158.102:5000/api/complaints'),
+      Uri.parse('${ApiConfig.baseUrl}/api/complaints'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -1079,15 +1080,38 @@ class _EstatesPageState extends State<EstatesPage> {
                 children: [
                   const BackButton(color: Colors.white),
                   const SizedBox(width: 10),
+                  // const Expanded(
+                  //   child: Text(
+                  //     'Complaints',
+                  //     style: TextStyle(
+                  //         color: Colors.white,
+                  //         fontSize: 22,
+                  //         fontWeight: FontWeight.bold),
+                  //   ),
+                  // ),
                   const Expanded(
-                    child: Text(
-                      'Complaints',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'Complaints',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      Text(
+        'Welcome Back, Assosiative Director Estates 👋',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.bold
+        ),
+      ),
+    ],
+  ),
+),
                   IconButton(
                     icon: const Icon(Icons.refresh, color: Colors.white),
                     onPressed: fetchComplaints,

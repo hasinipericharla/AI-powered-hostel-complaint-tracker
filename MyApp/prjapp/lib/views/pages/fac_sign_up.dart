@@ -1565,7 +1565,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'faculty.dart'; // adjust if your landing differs
 
-const BLOCKS = ["LH1","LH2","LH3","MH1","MH2","MH3","MH4","MH5","MH6","MH7"];
+const BLOCKS = ["LH1","LH2","LH3","LH4","MH1","MH2","MH3","MH4","MH5","MH6","MH7"];
 
 const ROLES = [
   // Hostel Management
@@ -1660,7 +1660,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   bool otpSent = false;
   bool otpVerified = false;
-  final String baseUrl = "http://10.188.158.102:5000/api/auth";
+  final String baseUrl = "${ApiConfig.baseUrl}/api/auth";
   //final baseUrl="${ApiConfig.baseUrl}/login";
   bool _showPassword = false;
   bool _showRePassword = false;
@@ -1675,7 +1675,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
     try {
       final res = await http.post(
-        Uri.parse('http://10.188.158.102:5000/api/auth/send-otp'),
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/send-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': _emailController.text.trim(),
@@ -1713,7 +1713,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
     try {
       final res = await http.post(
-        Uri.parse('http://10.188.158.102:5000/api/auth/verify-otp'),
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/verify-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           "email": _emailController.text.trim(),
@@ -1786,7 +1786,7 @@ class _SignUpPageState extends State<SignUpPage> {
       }
 
       final res = await http.post(
-        Uri.parse('http://10.188.158.102:5000/api/auth/register'),
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
@@ -1837,7 +1837,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       onPressed: () => Navigator.pop(context),
                     ),
                     const Text(
-                      "Staff / Student Sign Up",
+                      "Staff Sign Up",
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 20,

@@ -282,6 +282,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:prjapp/config/api_config.dart';
 import 'student_home.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -303,7 +304,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   bool otpSent = false; // show OTP field
   bool otpVerified = false; // track verification
-  final String baseUrl = "http://10.188.158.102:5000/api/auth";
+  final String baseUrl = "${ApiConfig.baseUrl}/api/auth";
 
   bool _showPassword = false;
   bool _showRePassword = false;

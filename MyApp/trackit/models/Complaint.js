@@ -76,7 +76,7 @@ const ComplaintSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true },
     description: { type: String, required: true, trim: true },
     place: { type: String, required: true, trim: true },
-    block: { type: String, enum: ["LH1","LH2","LH3","MH1","MH2","MH3","MH4","MH5","MH6","MH7"], required: true },
+    block: { type: String, enum: ["LH1","LH2","LH3","LH4","MH1","MH2","MH3","MH4","MH5","MH6","MH7"], required: true },
     status: { type: String, enum: ["pending","in_progress","resolved"], default: "pending" },
     progress: { type: Number, min:0, max:100, default:0 },
     feedback: { rating: { type: Number, min:1, max:5 }, comment: { type: String, trim:true } },

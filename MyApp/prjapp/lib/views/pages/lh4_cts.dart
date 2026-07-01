@@ -1,234 +1,3 @@
-// import 'dart:convert';
-// import 'package:flutter/material.dart';
-// import 'package:http/http.dart' as http;
-// // ignore: depend_on_referenced_packages
-// import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-// import 'package:prjapp/config/api_config.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-
-
-// class BlockWardenMH4Page extends StatefulWidget {
-//   const BlockWardenMH4Page({super.key});
-
-//   @override
-//   State<BlockWardenMH4Page> createState() => _BlockWardenMH4PageState();
-// }
-
-// class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
-//   int selectedIndex = 0;
-//   bool isLoading = true;
-//   //final storage = const FlutterSecureStorage();
-
-//   List<Map<String, dynamic>> complaints = [];
-//   List<Map<String, dynamic>> reported = [];
-
-//   /// 🧾 Fetch complaints for Block Warden - LH1
-//   Future<void> fetchComplaints() async {
-//   setState(() => isLoading = true);
-
-//   try {
-//     final prefs = await SharedPreferences.getInstance();
-//     final token = prefs.getString('token'); // ✅ use the same key as login
-
-//     if (token == null) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text("Authentication token missing")),
-//       );
-//       return;
-//     }
-
-//     // ⚙️ Use emulator or device IP
-//     const String url = 'http://10.248.203.102:5000/api/complaints';
-//     // Example for real Android device:
-//     // const String url = 'http://192.168.x.x:5000/api/complaints';
-//     //final url="${ApiConfig.baseUrl}/login";
-//     final response = await http.get(
-//       Uri.parse(url),
-//       headers: {
-//         'Authorization': 'Bearer $token',
-//         'Content-Type': 'application/json',
-//       },
-//     );
-
-//     debugPrint('📡 Status Code: ${response.statusCode}');
-//     debugPrint('📦 Response Body: ${response.body}');
-
-//     if (response.statusCode == 200) {
-//       final data = json.decode(response.body);
-
-//       // ✅ handle both array and object response shapes
-//       final List allComplaints = (data is List)
-//           ? List<Map<String, dynamic>>.from(data)
-//           : List<Map<String, dynamic>>.from(data['complaints'] ?? []);
-
-//       // ✅ normalize block name (handles lowercase / spaces)
-//       final blockComplaints = allComplaints
-//           .where((c) =>
-//               (c['block'] ?? '').toString().trim().toUpperCase() == 'MH4')
-//           .toList();
-
-//       // ✅ separate reported vs non-reported
-//       final pending =
-//           blockComplaints.where((c) => c['reported'] != true).toList();
-//       final reportedList =
-//           blockComplaints.where((c) => c['reported'] == true).toList();
-
-//       setState(() {
-//         complaints = List<Map<String, dynamic>>.from(pending);
-//         reported = List<Map<String, dynamic>>.from(reportedList);
-//       });
-
-//       debugPrint("✅ Loaded ${complaints.length} MH4 complaints");
-//       debugPrint("✅ Loaded ${reported.length} reported complaints");
-//     } else {
-//       debugPrint('Error fetching complaints: ${response.statusCode}');
-//     }
-//   } catch (e) {
-//     debugPrint('❌ Error fetching complaints: $e');
-//   } finally {
-//     setState(() => isLoading = false);
-//   }
-// }
-
-
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     fetchComplaints();
-//   }
-
-//   Widget _buildTile(Map<String, dynamic> c, int index, {bool isReported = false}) {
-//     return Container(
-//       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(12),
-//         boxShadow: [
-//           BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8)
-//         ],
-//       ),
-//       child: ExpansionTile(
-//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//         leading: const Icon(Icons.apartment, color: Color(0xFFFF3D00)),
-//         title: Text(
-//           c['title'] ?? c['description'] ?? 'No title',
-//           maxLines: 1,
-//           overflow: TextOverflow.ellipsis,
-//           style: const TextStyle(fontWeight: FontWeight.bold),
-//         ),
-//         subtitle: Text("Place: ${c['place'] ?? '-'}"),
-//         children: [
-//           Padding(
-//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 if (isReported)
-//                   const Padding(
-//                     padding: EdgeInsets.only(bottom: 6.0),
-//                     child: Text(
-//                       "📢 Reported Complaint",
-//                       style: TextStyle(
-//                           fontWeight: FontWeight.bold, color: Colors.redAccent),
-//                     ),
-//                   ),
-//                 _detailRow("Email", c['user']?['email'] ?? c['email'] ?? '-'),
-//                 _detailRow("Reg No", c['regNo'] ?? '-'),
-//                 _detailRow("Status", c['status'] ?? '-'),
-//                 _detailRow("Filed Date",
-//                     (c['createdAt'] ?? c['filedDate'] ?? '-').toString().substring(0, 10)),
-//                 _detailRow("Description", c['description'] ?? '-'),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _detailRow(String label, String value) => Padding(
-//         padding: const EdgeInsets.symmetric(vertical: 2),
-//         child: Row(
-//           children: [
-//             SizedBox(
-//               width: 110,
-//               child: Text("$label:",
-//                   style: const TextStyle(fontWeight: FontWeight.bold)),
-//             ),
-//             Expanded(child: Text(value)),
-//           ],
-//         ),
-//       );
-
-//   Widget _complaintsPage() {
-//     if (isLoading) {
-//       return const Center(child: CircularProgressIndicator());
-//     }
-//     if (complaints.isEmpty) {
-//       return const Center(child: Text("No complaints found for MH4 block."));
-//     }
-//     return RefreshIndicator(
-//       onRefresh: fetchComplaints,
-//       child: ListView.builder(
-//         padding: const EdgeInsets.symmetric(vertical: 12),
-//         itemCount: complaints.length,
-//         itemBuilder: (context, i) => _buildTile(complaints[i], i),
-//       ),
-//     );
-//   }
-
-//   Widget _reportedPage() {
-//     if (isLoading) {
-//       return const Center(child: CircularProgressIndicator());
-//     }
-//     if (reported.isEmpty) {
-//       return const Center(child: Text("No reported complaints for MH4 block."));
-//     }
-//     return RefreshIndicator(
-//       onRefresh: fetchComplaints,
-//       child: ListView.builder(
-//         padding: const EdgeInsets.symmetric(vertical: 12),
-//         itemCount: reported.length,
-//         itemBuilder: (context, i) =>
-//             _buildTile(reported[i], i, isReported: true),
-//       ),
-//     );
-//   }
-
-//   Widget _settingsPage() =>
-//       const Center(child: Text("Settings (Coming Soon)"));
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final pages = [_complaintsPage(), _reportedPage(), _settingsPage()];
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Block Warden - MH4"),
-//         centerTitle: true,
-//         backgroundColor: const Color(0xFFFF3D00),
-//         leading: IconButton(
-//             icon: const Icon(Icons.arrow_back),
-//             onPressed: () => Navigator.pop(context)),
-//       ),
-//       body: pages[selectedIndex],
-//       bottomNavigationBar: BottomNavigationBar(
-//         currentIndex: selectedIndex,
-//         selectedItemColor: const Color(0xFFFF3D00),
-//         unselectedItemColor: Colors.black,
-//         onTap: (i) => setState(() => selectedIndex = i),
-//         items: const [
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.report_problem), label: 'Complaints'),
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.note_add), label: 'Reported'),
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.settings), label: 'Settings'),
-//         ],
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
@@ -319,14 +88,14 @@ class Complaint {
   }
 }
 
-class BlockWardenMH4Page extends StatefulWidget {
-  const BlockWardenMH4Page({super.key});
+class LH4CTSPage extends StatefulWidget {
+  const LH4CTSPage({super.key});
 
   @override
-  State<BlockWardenMH4Page> createState() => _BlockWardenMH4PageState();
+  State<LH4CTSPage> createState() => _LH4CTSPageState();
 }
 
-class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
+class _LH4CTSPageState extends State<LH4CTSPage> {
   int si = 0;
   List<Complaint> complaints = [];
   Map<String, bool> expandedMap = {};
@@ -338,47 +107,91 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
     fetchComplaints();
   }
 
-  Future<void> fetchComplaints() async {
-    setState(() => isLoading = true);
-    try {
-      final token = await getToken();
-      if (token == null) return;
+  // Future<void> fetchComplaints() async {
+  //   setState(() => isLoading = true);
+  //   try {
+  //     final token = await getToken();
+  //     if (token == null) return;
 
-      final response = await http.get(
-        Uri.parse("${ApiConfig.baseUrl}/api/complaints?block=MH4"),
-        headers: {"Authorization": "Bearer $token"},
-      );
+  //     final response = await http.get(
+  //       Uri.parse("http://10.88.127.102:5000/api/complaints?block=LH1"),
+  //       headers: {"Authorization": "Bearer $token"},
+  //     );
 
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-        List<dynamic> data = decoded['complaints'] ?? [];
+  //     if (response.statusCode == 200) {
+  //       final decoded = jsonDecode(response.body);
+  //       List<dynamic> data = decoded['complaints'] ?? [];
 
-        final newList = data
-            .map<Complaint>(
-              (item) => Complaint.fromJson(item as Map<String, dynamic>),
-            )
-            .toList();
+  //       final newList = data
+  //           .map<Complaint>(
+  //             (item) => Complaint.fromJson(item as Map<String, dynamic>),
+  //           )
+  //           .toList();
 
-        final newExpandedMap = Map<String, bool>.from(expandedMap);
-        for (final c in newList) {
-          newExpandedMap.putIfAbsent(c.id, () => false);
-        }
+  //       final newExpandedMap = Map<String, bool>.from(expandedMap);
+  //       for (final c in newList) {
+  //         newExpandedMap.putIfAbsent(c.id, () => false);
+  //       }
 
-        setState(() {
-          complaints = newList;
-          expandedMap = newExpandedMap;
-        });
-      } else {
-        print(
-          "Error fetching complaints: ${response.statusCode}: ${response.body}",
-        );
+  //       setState(() {
+  //         complaints = newList;
+  //         expandedMap = newExpandedMap;
+  //       });
+  //     } else {
+  //       print(
+  //         "Error fetching complaints: ${response.statusCode}: ${response.body}",
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching complaints: $e");
+  //   } finally {
+  //     setState(() => isLoading = false);
+  //   }
+  // }
+    Future<void> fetchComplaints() async {
+  setState(() => isLoading = true);
+  try {
+    final token = await getToken();
+    if (token == null) return;
+
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}/api/complaints?block=LH4"),
+      headers: {"Authorization": "Bearer $token"},
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      List<dynamic> data = decoded['complaints'] ?? [];
+
+      final newList = data
+          .map<Complaint>(
+            (item) => Complaint.fromJson(item as Map<String, dynamic>),
+          )
+          // ✅ ONLY WIFI COMPLAINTS FILTER
+          .where((c) {
+            final text =
+                "${c.place} ${c.title} ${c.description}".toLowerCase();
+            return text.contains("wifi");
+          })
+          .toList();
+
+      final newExpandedMap = Map<String, bool>.from(expandedMap);
+      for (final c in newList) {
+        newExpandedMap.putIfAbsent(c.id, () => false);
       }
-    } catch (e) {
-      print("Error fetching complaints: $e");
-    } finally {
-      setState(() => isLoading = false);
+
+      setState(() {
+        complaints = newList;
+        expandedMap = newExpandedMap;
+      });
     }
+  } catch (e) {
+    print("Error fetching complaints: $e");
+  } finally {
+    setState(() => isLoading = false);
   }
+}
+
 
   void _updateLocalProgressById(String id, int progress) {
     complaints = complaints.map((c) {
@@ -762,17 +575,41 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                         ),
                       ],
 
+                      // if (complaint.reported)
+                      //   const Padding(
+                      //     padding: EdgeInsets.only(top: 8.0),
+                      //     child: Text(
+                      //       "Complaint Reported",
+                      //       style: TextStyle(
+                      //         fontSize: 16,
+                      //         color: Colors.orange,
+                      //       ),
+                      //     ),
+                      //   ),
                       if (complaint.reported)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            "Complaint Reported",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.orange,
-                            ),
-                          ),
-                        ),
+  Padding(
+    padding: const EdgeInsets.only(top: 6),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: const [
+        Text(
+          '📢',
+          style: TextStyle(fontSize: 16),
+        ),
+        SizedBox(width: 6),
+        Text(
+          'Complaint Reported',
+          style: TextStyle(
+            color: Colors.orange,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    ),
+  ),
+
                     ],
                   ),
                 ),
@@ -870,7 +707,7 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                     const SizedBox(width: 12),
                     // const Expanded(
                     //   child: Text(
-                    //     'MH4 Complaints',
+                    //     'LH3 Wifi Complaints',
                     //     style: TextStyle(
                     //       color: Colors.white,
                     //       fontSize: 22,
@@ -878,12 +715,12 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                     //     ),
                     //   ),
                     // ),
-                    const Expanded(
+                     const Expanded(
   child: Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        'MH4 Complaints',
+        'LH4 Wifi Complaints',
         style: TextStyle(
           color: Colors.white,
           fontSize: 22,
@@ -891,7 +728,7 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
         ),
       ),
       Text(
-        'Welcome Back, Block Warden MH4 👋',
+        'Welcome Back, Wifi Incharge LH4 👋',
         style: TextStyle(
           color: Colors.white,
           fontSize: 13,

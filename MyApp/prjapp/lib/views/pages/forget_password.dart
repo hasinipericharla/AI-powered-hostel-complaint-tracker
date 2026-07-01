@@ -565,6 +565,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:prjapp/config/api_config.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -581,7 +582,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController reEnterPasswordController =
       TextEditingController();
 
-  final String baseUrl = "http://10.188.158.102:5000/api/auth";
+  final String baseUrl = "${ApiConfig.baseUrl}/api/auth";
 
   bool otpSent = false;
   bool otpVerified = false;
@@ -638,7 +639,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     try {
       final res = await http.post(
-        Uri.parse('http://10.188.158.102:5000/api/auth/forgot-password'),
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/forgot-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({"email": email}),
       );
@@ -675,7 +676,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     try {
       final res = await http.post(
-        Uri.parse('http://10.188.158.102:5000/api/auth/verify-forgot-otp'),
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/verify-forgot-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({"email": email, "otp": otp}),
       );
@@ -721,7 +722,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     try {
       final res = await http.post(
-        Uri.parse('http://10.188.158.102:5000/api/auth/forgot-reset'),
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/forgot-reset'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           "fullName": fullNameController.text.trim(), // use email

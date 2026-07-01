@@ -1353,6 +1353,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:prjapp/config/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'settings.dart';
@@ -1464,7 +1465,7 @@ class _LH3PageState extends State<LH3Page> {
       if (token == null) return;
 
       final response = await http.get(
-        Uri.parse("http://10.88.127.102:5000/api/complaints?block=LH3"),
+        Uri.parse("${ApiConfig.baseUrl}/api/complaints?block=LH3"),
         headers: {"Authorization": "Bearer $token"},
       );
 
@@ -1541,7 +1542,7 @@ class _LH3PageState extends State<LH3Page> {
       };
 
       final response = await http.patch(
-        Uri.parse("http://10.88.127.102:5000/api/complaints/$id/status"),
+        Uri.parse("${ApiConfig.baseUrl}/api/complaints/$id/status"),
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $token",

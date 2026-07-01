@@ -126,7 +126,7 @@
 
 import mongoose from "mongoose";
 
-export const BLOCKS = ["LH1","LH2","LH3","MH1","MH2","MH3","MH4","MH5","MH6","MH7"];
+export const BLOCKS = ["LH1","LH2","LH3","LH4","MH1","MH2","MH3","MH4","MH5","MH6","MH7"];
 
 export const ROLES = [
   // student

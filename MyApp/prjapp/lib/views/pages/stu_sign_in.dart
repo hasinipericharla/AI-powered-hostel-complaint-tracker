@@ -192,6 +192,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:prjapp/config/api_config.dart';
 import 'student_home.dart';
 import 'forget_password.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -216,7 +217,7 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  final String baseUrl = "http://10.188.158.102:5000/api/auth";
+  final String baseUrl = "${ApiConfig.baseUrl}/api/auth";
   bool _showPassword = false;
   Future<void> login(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
@@ -372,7 +373,7 @@ class _SignInPageState extends State<SignInPage> {
                               controller: usernameController,
                               cursorColor: Color(0xFFFF3D00),
                               decoration: InputDecoration(
-                                labelText: "Username",
+                                labelText: "Username or Email",
                                 labelStyle: TextStyle(color: Colors.black), // normal
                                 floatingLabelStyle: TextStyle(color: Colors.black), // focused
                                 prefixIcon: Icon(

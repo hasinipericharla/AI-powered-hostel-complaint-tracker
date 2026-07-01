@@ -1,234 +1,3 @@
-// import 'dart:convert';
-// import 'package:flutter/material.dart';
-// import 'package:http/http.dart' as http;
-// // ignore: depend_on_referenced_packages
-// import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-// import 'package:prjapp/config/api_config.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-
-
-// class BlockWardenMH4Page extends StatefulWidget {
-//   const BlockWardenMH4Page({super.key});
-
-//   @override
-//   State<BlockWardenMH4Page> createState() => _BlockWardenMH4PageState();
-// }
-
-// class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
-//   int selectedIndex = 0;
-//   bool isLoading = true;
-//   //final storage = const FlutterSecureStorage();
-
-//   List<Map<String, dynamic>> complaints = [];
-//   List<Map<String, dynamic>> reported = [];
-
-//   /// 🧾 Fetch complaints for Block Warden - LH1
-//   Future<void> fetchComplaints() async {
-//   setState(() => isLoading = true);
-
-//   try {
-//     final prefs = await SharedPreferences.getInstance();
-//     final token = prefs.getString('token'); // ✅ use the same key as login
-
-//     if (token == null) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text("Authentication token missing")),
-//       );
-//       return;
-//     }
-
-//     // ⚙️ Use emulator or device IP
-//     const String url = 'http://10.248.203.102:5000/api/complaints';
-//     // Example for real Android device:
-//     // const String url = 'http://192.168.x.x:5000/api/complaints';
-//     //final url="${ApiConfig.baseUrl}/login";
-//     final response = await http.get(
-//       Uri.parse(url),
-//       headers: {
-//         'Authorization': 'Bearer $token',
-//         'Content-Type': 'application/json',
-//       },
-//     );
-
-//     debugPrint('📡 Status Code: ${response.statusCode}');
-//     debugPrint('📦 Response Body: ${response.body}');
-
-//     if (response.statusCode == 200) {
-//       final data = json.decode(response.body);
-
-//       // ✅ handle both array and object response shapes
-//       final List allComplaints = (data is List)
-//           ? List<Map<String, dynamic>>.from(data)
-//           : List<Map<String, dynamic>>.from(data['complaints'] ?? []);
-
-//       // ✅ normalize block name (handles lowercase / spaces)
-//       final blockComplaints = allComplaints
-//           .where((c) =>
-//               (c['block'] ?? '').toString().trim().toUpperCase() == 'MH4')
-//           .toList();
-
-//       // ✅ separate reported vs non-reported
-//       final pending =
-//           blockComplaints.where((c) => c['reported'] != true).toList();
-//       final reportedList =
-//           blockComplaints.where((c) => c['reported'] == true).toList();
-
-//       setState(() {
-//         complaints = List<Map<String, dynamic>>.from(pending);
-//         reported = List<Map<String, dynamic>>.from(reportedList);
-//       });
-
-//       debugPrint("✅ Loaded ${complaints.length} MH4 complaints");
-//       debugPrint("✅ Loaded ${reported.length} reported complaints");
-//     } else {
-//       debugPrint('Error fetching complaints: ${response.statusCode}');
-//     }
-//   } catch (e) {
-//     debugPrint('❌ Error fetching complaints: $e');
-//   } finally {
-//     setState(() => isLoading = false);
-//   }
-// }
-
-
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     fetchComplaints();
-//   }
-
-//   Widget _buildTile(Map<String, dynamic> c, int index, {bool isReported = false}) {
-//     return Container(
-//       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(12),
-//         boxShadow: [
-//           BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8)
-//         ],
-//       ),
-//       child: ExpansionTile(
-//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//         leading: const Icon(Icons.apartment, color: Color(0xFFFF3D00)),
-//         title: Text(
-//           c['title'] ?? c['description'] ?? 'No title',
-//           maxLines: 1,
-//           overflow: TextOverflow.ellipsis,
-//           style: const TextStyle(fontWeight: FontWeight.bold),
-//         ),
-//         subtitle: Text("Place: ${c['place'] ?? '-'}"),
-//         children: [
-//           Padding(
-//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 if (isReported)
-//                   const Padding(
-//                     padding: EdgeInsets.only(bottom: 6.0),
-//                     child: Text(
-//                       "📢 Reported Complaint",
-//                       style: TextStyle(
-//                           fontWeight: FontWeight.bold, color: Colors.redAccent),
-//                     ),
-//                   ),
-//                 _detailRow("Email", c['user']?['email'] ?? c['email'] ?? '-'),
-//                 _detailRow("Reg No", c['regNo'] ?? '-'),
-//                 _detailRow("Status", c['status'] ?? '-'),
-//                 _detailRow("Filed Date",
-//                     (c['createdAt'] ?? c['filedDate'] ?? '-').toString().substring(0, 10)),
-//                 _detailRow("Description", c['description'] ?? '-'),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _detailRow(String label, String value) => Padding(
-//         padding: const EdgeInsets.symmetric(vertical: 2),
-//         child: Row(
-//           children: [
-//             SizedBox(
-//               width: 110,
-//               child: Text("$label:",
-//                   style: const TextStyle(fontWeight: FontWeight.bold)),
-//             ),
-//             Expanded(child: Text(value)),
-//           ],
-//         ),
-//       );
-
-//   Widget _complaintsPage() {
-//     if (isLoading) {
-//       return const Center(child: CircularProgressIndicator());
-//     }
-//     if (complaints.isEmpty) {
-//       return const Center(child: Text("No complaints found for MH4 block."));
-//     }
-//     return RefreshIndicator(
-//       onRefresh: fetchComplaints,
-//       child: ListView.builder(
-//         padding: const EdgeInsets.symmetric(vertical: 12),
-//         itemCount: complaints.length,
-//         itemBuilder: (context, i) => _buildTile(complaints[i], i),
-//       ),
-//     );
-//   }
-
-//   Widget _reportedPage() {
-//     if (isLoading) {
-//       return const Center(child: CircularProgressIndicator());
-//     }
-//     if (reported.isEmpty) {
-//       return const Center(child: Text("No reported complaints for MH4 block."));
-//     }
-//     return RefreshIndicator(
-//       onRefresh: fetchComplaints,
-//       child: ListView.builder(
-//         padding: const EdgeInsets.symmetric(vertical: 12),
-//         itemCount: reported.length,
-//         itemBuilder: (context, i) =>
-//             _buildTile(reported[i], i, isReported: true),
-//       ),
-//     );
-//   }
-
-//   Widget _settingsPage() =>
-//       const Center(child: Text("Settings (Coming Soon)"));
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final pages = [_complaintsPage(), _reportedPage(), _settingsPage()];
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Block Warden - MH4"),
-//         centerTitle: true,
-//         backgroundColor: const Color(0xFFFF3D00),
-//         leading: IconButton(
-//             icon: const Icon(Icons.arrow_back),
-//             onPressed: () => Navigator.pop(context)),
-//       ),
-//       body: pages[selectedIndex],
-//       bottomNavigationBar: BottomNavigationBar(
-//         currentIndex: selectedIndex,
-//         selectedItemColor: const Color(0xFFFF3D00),
-//         unselectedItemColor: Colors.black,
-//         onTap: (i) => setState(() => selectedIndex = i),
-//         items: const [
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.report_problem), label: 'Complaints'),
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.note_add), label: 'Reported'),
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.settings), label: 'Settings'),
-//         ],
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
@@ -297,7 +66,7 @@ class Complaint {
           ? item['reported']
           : (item['reported']?.toString().toLowerCase() == 'true'),
       regNo: (item['regNo'] ?? "-").toString(),
-      email: item['studentEmail'] ?? item['user']?['email'],
+      email: item['email'],
     );
   }
 
@@ -319,14 +88,14 @@ class Complaint {
   }
 }
 
-class BlockWardenMH4Page extends StatefulWidget {
-  const BlockWardenMH4Page({super.key});
+class LH4Page extends StatefulWidget {
+  const LH4Page({super.key});
 
   @override
-  State<BlockWardenMH4Page> createState() => _BlockWardenMH4PageState();
+  State<LH4Page> createState() => _LH4PageState();
 }
 
-class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
+class _LH4PageState extends State<LH4Page> {
   int si = 0;
   List<Complaint> complaints = [];
   Map<String, bool> expandedMap = {};
@@ -345,7 +114,7 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
       if (token == null) return;
 
       final response = await http.get(
-        Uri.parse("${ApiConfig.baseUrl}/api/complaints?block=MH4"),
+        Uri.parse("${ApiConfig.baseUrl}/api/complaints?block=LH4"),
         headers: {"Authorization": "Bearer $token"},
       );
 
@@ -380,6 +149,7 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
     }
   }
 
+  // Update local complaint progress (optimistic UI)
   void _updateLocalProgressById(String id, int progress) {
     complaints = complaints.map((c) {
       if (c.id == id) {
@@ -394,12 +164,12 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
               : (progress > 0 ? 'in_progress' : 'pending'),
           progress: progress,
           createdAt: c.createdAt,
-          resolvedAt:
-              (progress == 100) ? DateTime.now().toIso8601String() : c.resolvedAt,
+          resolvedAt: (progress == 100)
+              ? DateTime.now().toIso8601String()
+              : c.resolvedAt,
           feedback: c.feedback,
           reported: c.reported,
           regNo: c.regNo,
-          email: c.email,
         );
       }
       return c;
@@ -443,9 +213,11 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
       await fetchComplaints();
     }
 
+    // ✅ Safe rebuild and tab switch
     if (mounted) {
       setState(() {});
       if (progress == 100) {
+        // 🎉 Show a small confirmation
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -456,6 +228,8 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
             duration: Duration(seconds: 2),
           ),
         );
+
+        // Safely switch to resolved tab after current frame
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) setState(() => si = 1);
         });
@@ -463,44 +237,30 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
     }
   }
 
+  // List<Complaint> _getDisplayedList() {
+  //   switch (si) {
+  //     case 0:
+  //       return complaints.where((c) => !c.isResolved && !c.reported).toList();
+  //     case 1:
+  //       return complaints.where((c) => c.isResolved).toList();
+  //     case 2:
+  //       return complaints.where((c) => c.reported && !c.isResolved).toList();
+  //     // case 3:
+  //     //   return complaints.where((c) => c.reported && !c.isResolved).toList();
+  //     default:
+  //       return [];
+  //   }
+  // }
+
   String _formatDate(String? dateString) {
-    if (dateString == null || dateString.isEmpty || dateString == '-') return '-';
+    if (dateString == null || dateString.isEmpty || dateString == '-')
+      return '-';
     try {
       final DateTime dateTime = DateTime.parse(dateString);
       return DateFormat('dd-MM-yyyy').format(dateTime);
     } catch (e) {
       return dateString;
     }
-  }
-
-  Widget infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            ':',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget buildComplaintList(List<Complaint> list) {
@@ -510,7 +270,7 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.inbox_outlined, size: 80, color: Colors.grey[400]),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               "No complaints found",
               style: TextStyle(
@@ -525,7 +285,7 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       itemCount: list.length,
       itemBuilder: (context, index) {
         final complaint = list[index];
@@ -540,7 +300,7 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
               BoxShadow(
                 color: Colors.black.withOpacity(0.08),
                 blurRadius: 20,
-                offset: const Offset(0, 10),
+                offset: Offset(0, 10),
               ),
             ],
           ),
@@ -549,7 +309,8 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
             elevation: 0,
             expansionCallback: (panelIndex, currentExpanded) {
               setState(() {
-                expandedMap[complaint.id] = !isExpanded;
+                expandedMap[complaint.id] =
+                    !(expandedMap[complaint.id] ?? false);
               });
             },
             children: [
@@ -557,16 +318,16 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                 backgroundColor: Colors.transparent,
                 headerBuilder: (context, isExp) {
                   return Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.all(20),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: complaint.isResolved
                                   ? [Colors.green[400]!, Colors.green[600]!]
-                                  : [const Color(0xFFFF3D00), const Color(0xFFFF3D00)],
+                                  : [Color(0xFFFF3D00),Color(0xFFFF3D00),],
                             ),
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -578,20 +339,20 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                             size: 24,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 complaint.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF2D3748),
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Text(
                                 "Progress: ${complaint.progress}%",
                                 style: TextStyle(
@@ -611,40 +372,273 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      infoRow('Student Email', complaint.email ?? '-'),
-                      infoRow('Reg No.', complaint.regNo),
-                      infoRow('Block', complaint.block),
-                      infoRow('Place', complaint.place),
-                      infoRow('Status', complaint.status),
-                      infoRow('Filed Date', _formatDate(complaint.createdAt)),
-                      if (complaint.resolvedAt != null)
-                        infoRow('Resolved Date', _formatDate(complaint.resolvedAt)),
-                      infoRow('Description', complaint.description),
+                      // Row(
+                      //   children: [
+                      //     const Text("Student Email: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                      //     Text(complaint.email ?? '-'),
+                      //   ],
+                      // ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            child: Text(
+                              'Student Email:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 190,
+                            child: Text(
+                              complaint.email ?? '-',
+                              style: TextStyle(fontSize: 16),
+                              //textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            child: Text(
+                              'Reg No.            :',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 100,
+                            child: Text(
+                              complaint.regNo,
+                              style: TextStyle(fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            child: Text(
+                              'Block                :',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 100,
+                            child: Text(
+                              complaint.block,
+                              style: TextStyle(fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            child: Text(
+                              'Place                :',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 100,
+                            child: Text(
+                              complaint.place,
+                              style: TextStyle(fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
 
-                      if (!complaint.isResolved) ...[
-                        const SizedBox(height: 12),
-                        infoRow('Progress', "${complaint.progress}%"),
-                        Slider(
-                          value: complaint.progress.toDouble().clamp(0.0, 100.0),
-                          min: 0,
-                          max: 99,
-                          divisions: 100,
-                          label: "${complaint.progress}%",
-                          activeColor: const Color(0xFFFF3D00),
-                          onChanged: (value) {
-                            _updateLocalProgressById(
-                                complaint.id, value.toInt());
-                            setState(() {});
-                          },
-                          onChangeEnd: (value) async {
-                            await updateProgressById(
-                                complaint.id, value.toInt());
-                          },
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            child: Text(
+                              'Status               :',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 100,
+                            child: Text(
+                              complaint.status,
+                              style: TextStyle(fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            child: Text(
+                              'Filed Date         :',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 100,
+                            child: Text(
+                              _formatDate(complaint.createdAt),
+                              style: TextStyle(fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      if (complaint.resolvedAt != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6.0),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 120,
+                                child: Text(
+                                  'Resolved Date :',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 100,
+                                child: Text(
+                                  _formatDate(complaint.resolvedAt),
+                                  style: TextStyle(fontSize: 16),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        Center(
+                      //const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            child: Text(
+                              'Description      :',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              complaint.description,
+                              style: TextStyle(fontSize: 16),
+                              softWrap: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!complaint.isResolved) ...[
+                        //Text("Progress: ${complaint.progress}%"),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 120,
+                              child: Text(
+                                'Progress           :',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 100,
+                              child: Text(
+                                "${complaint.progress}%",
+                                style: TextStyle(fontSize: 16),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SliderTheme(
+                          data: SliderThemeData(
+                            activeTrackColor: Color(0xFFFF3D00),
+                            inactiveTrackColor: Colors.grey[300],
+                            thumbColor: Color(0xFFFF3D00),
+                            overlayColor: Color(0xFFFF3D00),
+                            valueIndicatorColor: Color(0xFFFF3D00),
+                          ),
+                          child: Slider(
+                            value: complaint.progress.toDouble().clamp(
+                              0.0,
+                              100.0,
+                            ),
+                            min: 0,
+                            max: 99,
+                            divisions: 100,
+                            label: "${complaint.progress}%",
+                            onChanged: (double value) {
+                              // Optimistic update locally, but no setState yet
+                              _updateLocalProgressById(
+                                complaint.id,
+                                value.toInt(),
+                              );
+                              setState(() {}); // update UI immediately
+                            },
+                            onChangeEnd: (double value) async {
+                              // Call backend after sliding ends
+                              await updateProgressById(
+                                complaint.id,
+                                value.toInt(),
+                              );
+                            },
+                          ),
+                        ),
+                        Container(
+                          width: double.infinity,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.green[400]!, Colors.green[600]!],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.green.withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: Offset(0, 6),
+                              ),
+                            ],
+                          ),
                           child: ElevatedButton.icon(
                             onPressed: () async {
+                              // Show confirmation dialog
                               final confirmed = await showDialog<bool>(
                                 context: context,
                                 builder: (ctx) => AlertDialog(
@@ -653,46 +647,50 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                                   ),
                                   title: const Text('Mark as Resolved'),
                                   content: const Text(
-                                      'Are you sure you want to mark this complaint as resolved?'),
+                                    'Are you sure you want to mark this complaint as resolved?',
+                                  ),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.of(ctx).pop(false),
-                                      child: Text('Cancel', style: TextStyle(color: Colors.black,fontSize: 16, )),
+                                      child: const Text('Cancel'),
                                     ),
                                     ElevatedButton(
                                       onPressed: () =>
                                           Navigator.of(ctx).pop(true),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.green,
-                                        foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                       ),
-                                      //child: const Text('Resolve'),
-                                      child: Text(
-                                "Resolve",
-                                style: TextStyle(
-                                    color: Colors.white ,fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
+                                      child: const Text('Resolve'),
                                     ),
                                   ],
                                 ),
                               );
+
                               if (confirmed == true) {
                                 await updateProgressById(complaint.id, 100);
                               }
                             },
-                            icon: const Icon(Icons.check_circle),
-                            label: const Text('Mark as Resolved'),
+                            icon: const Icon(Icons.check_circle, size: 20),
+                            label: const Text(
+                              'Mark as Resolved',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
+                              backgroundColor: Colors.transparent,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 12),
-                              textStyle: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                         ),
@@ -703,21 +701,13 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            const SizedBox(
-                              width: 120,
-                              child: Text(
-                                "Rating",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
+                            const Text(
+                              "Rating              : ",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              ":",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(width: 8),
                             Row(
                               children: List.generate(5, (starIndex) {
                                 final rating =
@@ -737,29 +727,29 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(
+                            SizedBox(
                               width: 120,
                               child: Text(
-                                'Feedback',
+                                'Feedback        :',
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              ':',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 complaint.feedback?['comment'] ?? '-',
-                                style: const TextStyle(fontSize: 16),
+                                style: TextStyle(fontSize: 16),
+                                softWrap: true,
                               ),
                             ),
                           ],
                         ),
+                        //   Text(
+                        //     "Feedback: ${complaint.feedback?['comment'] ?? '-'}",
+                        //     style: const TextStyle(fontSize: 16),
+                        //   ),
                       ],
 
                       if (complaint.reported)
@@ -792,19 +782,19 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFFf093fb), Color(0xFFf5576c)],
                 ),
+                shape: BoxShape.circle,
               ),
-              child: const CircularProgressIndicator(
+              child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 strokeWidth: 3,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Text(
               'Loading complaints...',
               style: TextStyle(
@@ -832,7 +822,7 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
           complaints.where((c) => c.reported && !c.isResolved).toList(),
         );
       case 3:
-        return const Settings();
+        return const Settings(); // 👈 Show Settings page here
       default:
         return const Center(child: Text("Unknown page"));
     }
@@ -842,24 +832,42 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFFFF3D00),
+        decoration: BoxDecoration(
+          // gradient: LinearGradient(
+          //   begin: Alignment.topCenter,
+          //   end: Alignment.bottomCenter,
+          //   colors: [Color(0xFFf093fb), Color(0xFFf5576c)],
+          // ),
+          color:Color(0xFFFF3D00),
         ),
         child: SafeArea(
           child: Column(
             children: [
+              // Custom App Bar
               Container(
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
+                    // Container(
+                    //   padding: EdgeInsets.all(10),
+                    //   decoration: BoxDecoration(
+                    //     color: Colors.white.withOpacity(0.2),
+                    //     borderRadius: BorderRadius.circular(12),
+                    //   ),
+                    //   child: Icon(
+                    //     Icons.home_work_outlined,
+                    //     color: Colors.white,
+                    //     size: 24,
+                    //   ),
+                    // ),
                     IconButton(
                       icon: Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back_ios,
                           color: Colors.white,
                           size: 20,
@@ -867,48 +875,25 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                       ),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    const SizedBox(width: 12),
-                    // const Expanded(
-                    //   child: Text(
-                    //     'MH4 Complaints',
-                    //     style: TextStyle(
-                    //       color: Colors.white,
-                    //       fontSize: 22,
-                    //       fontWeight: FontWeight.bold,
-                    //     ),
-                    //   ),
-                    // ),
-                    const Expanded(
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        'MH4 Complaints',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      Text(
-        'Welcome Back, Block Warden MH4 👋',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 13,
-          fontWeight: FontWeight.bold
-        ),
-      ),
-    ],
-  ),
-),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: const Text(
+                        'LH4 Complaints',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                     IconButton(
                       icon: Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.refresh, color: Colors.white),
+                        child: Icon(Icons.refresh, color: Colors.white),
                       ),
                       onPressed: fetchComplaints,
                       tooltip: 'Refresh',
@@ -916,9 +901,11 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                   ],
                 ),
               ),
+
+              // Page Content
               Expanded(
                 child: Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Color(0xFFF5F7FA),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
@@ -926,7 +913,7 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
                     ),
                   ),
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
+                    borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),
                     ),
@@ -944,33 +931,34 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
               blurRadius: 20,
-              offset: const Offset(0, -5),
+              offset: Offset(0, -5),
             ),
           ],
         ),
         child: NavigationBar(
           selectedIndex: si,
           backgroundColor: Colors.white,
-          indicatorColor: const Color(0xFFFBE9E7),
+          //indicatorColor: Color(0xFFf093fb).withOpacity(0.2),
+          indicatorColor:Color(0xFFFBE9E7),
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.note_outlined),
-              selectedIcon: Icon(Icons.note, color: Color(0xFFFF3D00)),
+              selectedIcon: Icon(Icons.note,color:Color(0xFFFF3D00),),
               label: 'Complaints',
             ),
             NavigationDestination(
               icon: Icon(Icons.verified_outlined),
-              selectedIcon: Icon(Icons.verified, color: Color(0xFFFF3D00)),
+              selectedIcon: Icon(Icons.verified,color:Color(0xFFFF3D00),),
               label: 'Resolved',
             ),
             NavigationDestination(
               icon: Icon(Icons.report_outlined),
-              selectedIcon: Icon(Icons.report, color: Color(0xFFFF3D00)),
+              selectedIcon: Icon(Icons.report,color:Color(0xFFFF3D00),),
               label: 'Reported',
             ),
             NavigationDestination(
               icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings, color: Color(0xFFFF3D00)),
+              selectedIcon: Icon(Icons.settings,color:Color(0xFFFF3D00),),
               label: 'Settings',
             ),
           ],
@@ -981,6 +969,11 @@ class _BlockWardenMH4PageState extends State<BlockWardenMH4Page> {
           },
         ),
       ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: fetchComplaints,
+      //   child: const Icon(Icons.refresh),
+      //   tooltip: 'Refresh complaints',
+      // ),
     );
   }
 }

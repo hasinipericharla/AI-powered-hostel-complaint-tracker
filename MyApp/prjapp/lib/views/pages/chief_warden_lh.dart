@@ -662,6 +662,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:prjapp/config/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'settings.dart';
@@ -732,7 +733,7 @@ class _ChiefWardenLHPageState extends State<ChiefWardenLHPage> {
   Map<String, bool> expanded = {};
 
   String selectedBlock = "All";
-  final blocks = ["All", "LH1", "LH2", "LH3"];
+  final blocks = ["All", "LH1", "LH2", "LH3","LH4"];
 
   @override
   void initState() {
@@ -748,7 +749,7 @@ class _ChiefWardenLHPageState extends State<ChiefWardenLHPage> {
     if (token == null) return;
 
     final res = await http.get(
-      Uri.parse("http://10.188.158.102:5000/api/complaints"),
+      Uri.parse("${ApiConfig.baseUrl}/api/complaints"),
       headers: {"Authorization": "Bearer $token"},
     );
 
@@ -758,7 +759,7 @@ class _ChiefWardenLHPageState extends State<ChiefWardenLHPage> {
       complaints = data
           .map((e) => Complaint.fromJson(e))
           .where((c) =>
-              c.block == "LH1" || c.block == "LH2" || c.block == "LH3")
+              c.block == "LH1" || c.block == "LH2" || c.block == "LH3" || c.block =="LH4")
           .toList();
 
       for (final c in complaints) {
@@ -950,28 +951,64 @@ onChanged: (v) => setState(() => selectedBlock = v!),
         child: Column(
           children: [
             /// APP BAR
+            // Padding(
+            //   padding: const EdgeInsets.all(20),
+            //   child: Row(
+            //     children: [
+            //       const BackButton(color: Colors.white),
+            //       const SizedBox(width: 10),
+            //       const Expanded(
+            //         child: Text(
+            //           "LH Block Complaints",
+            //           style: TextStyle(
+            //               color: Colors.white,
+            //               fontSize: 22,
+            //               fontWeight: FontWeight.bold),
+            //         ),
+                    
+            //       ),
+            //       IconButton(
+            //         icon: const Icon(Icons.refresh, color: Colors.white),
+            //         onPressed: fetchComplaints,
+            //       ),
+            //     ],
+            //   ),
+            // ),
             Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  const BackButton(color: Colors.white),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text(
-                      "LH Block Complaints",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.white),
-                    onPressed: fetchComplaints,
-                  ),
-                ],
+  padding: const EdgeInsets.all(20),
+  child: Row(
+    children: [
+      const BackButton(color: Colors.white),
+      const SizedBox(width: 10),
+      const Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "LH Block Complaints",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold),
+            ),
+            Text(
+              "Welcome Back, Chief Warden LH 👋",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold
               ),
             ),
+          ],
+        ),
+      ),
+      IconButton(
+        icon: const Icon(Icons.refresh, color: Colors.white),
+        onPressed: fetchComplaints,
+      ),
+    ],
+  ),
+),
 
             Expanded(
               child: Container(
